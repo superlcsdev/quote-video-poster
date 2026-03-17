@@ -26,7 +26,7 @@ Guidelines:
 - Short and punchy — 1 to 2 sentences maximum
 - Deeply relatable to hardworking Filipinos
 - Warm, encouraging, never preachy
-- Occasionally use 1 Tagalog word for warmth (optional, only if natural)
+- Write in English only — no Tagalog or Taglish words
 - Do NOT mention any brand, company, or product
 - Format: Just the quote text itself, no quotation marks, no author name
 
@@ -43,11 +43,11 @@ FALLBACK_QUOTES = {
     "ofw": [
         ("Every peso you save today is a dream you're building for tomorrow.", "For every OFW grinding far from home 💪"),
         ("You left home to build a better one. That sacrifice is never wasted.", "Your hard work matters 🏠❤️"),
-        ("Being far from family doesn't mean being far from your purpose.", "Stay strong, kababayan 🌏"),
+        ("Being far from family doesn't mean being far from your purpose.", "Stay strong out there 🌏"),
         ("The distance between you and your dreams is measured in discipline, not miles.", "Keep going 💫"),
         ("You are not just working for a salary. You are building a legacy.", "For every hardworking OFW 🙏"),
         ("Homesickness is the price of love. And you pay it every day with grace.", "You are braver than you know ❤️"),
-        ("Your family may not see every long day you put in — but every sacrifice counts.", "Hindi nasasayang ang pagod mo 💪"),
+        ("Your family may not see every long day you put in — but every sacrifice counts.", "Every effort matters 💪"),
         ("One day, you won't have to say goodbye at the airport anymore.", "Hold on to that vision 🌅"),
         ("The strongest people are those who smile through hard times and fight for their dreams.", "That's you 🔥"),
         ("You didn't come this far to only come this far.", "Keep pushing forward 💫"),
