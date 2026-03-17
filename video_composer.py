@@ -10,7 +10,6 @@ Composes the final quote video:
 """
 
 import os
-import textwrap
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 try:
@@ -92,12 +91,29 @@ def _make_text_overlay(quote: str, subtitle: str, author: str,
     font_author   = _load_font(FONT_PATHS_BOLD,    36)
     font_handle   = _load_font(FONT_PATHS_REGULAR, 32)
 
-    pad = 80
+    pad       = 100                        # safe margin each side
+    max_text_w = width - (pad * 2)         # max pixel width for text
 
-    # ── Wrap quote text ───────────────────────────────────────────
-    max_chars = 28  # chars per line for 72pt font at 1080px
-    lines     = textwrap.wrap(quote, width=max_chars)
-    line_h    = 88
+    # ── Pixel-aware word wrap ─────────────────────────────────────
+    def wrap_by_pixels(text, font, max_px):
+        """Wrap text based on actual rendered pixel width, not char count."""
+        words   = text.split()
+        lines   = []
+        current = ""
+        for word in words:
+            test = f"{current} {word}".strip()
+            bbox = draw.textbbox((0, 0), test, font=font)
+            if bbox[2] > max_px and current:
+                lines.append(current)
+                current = word
+            else:
+                current = test
+        if current:
+            lines.append(current)
+        return lines
+
+    lines     = wrap_by_pixels(quote, font_quote, max_text_w)
+    line_h    = 90
     total_quote_h = len(lines) * line_h
     quote_start_y = (height - total_quote_h) // 2 - 60
 
