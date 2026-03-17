@@ -13,13 +13,12 @@ import os
 import textwrap
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import (
-    VideoFileClip,
-    ImageClip,
-    CompositeVideoClip,
-    ColorClip,
-    concatenate_videoclips,
-)
+try:
+    # moviepy 2.x
+    from moviepy import VideoFileClip, ImageClip, CompositeVideoClip, concatenate_videoclips
+except ImportError:
+    # moviepy 1.x fallback
+    from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, concatenate_videoclips
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -146,6 +145,43 @@ def _make_text_overlay(quote: str, subtitle: str, author: str,
     return np.array(img)
 
 
+def _resize_clip(clip, new_w, new_h):
+    """Resize clip — handles moviepy 1.x and 2.x API difference."""
+    try:
+        return clip.resized((new_w, new_h))        # moviepy 2.x
+    except AttributeError:
+        return clip.resize((new_w, new_h))         # moviepy 1.x
+
+
+def _subclip(clip, start, end):
+    """Subclip — handles moviepy 1.x and 2.x."""
+    try:
+        return clip.subclipped(start, end)          # moviepy 2.x
+    except AttributeError:
+        return clip.subclip(start, end)             # moviepy 1.x
+
+
+def _remove_audio(clip):
+    """Remove audio — handles moviepy 1.x and 2.x."""
+    try:
+        return clip.without_audio()                 # both versions
+    except Exception:
+        try:
+            return clip.set_audio(None)             # fallback
+        except Exception:
+            return clip
+
+
+def _make_image_clip(array, duration):
+    """Create ImageClip — handles moviepy 1.x and 2.x."""
+    try:
+        # moviepy 2.x: duration passed to constructor
+        return ImageClip(array, duration=duration)
+    except TypeError:
+        # moviepy 1.x: chained method
+        return ImageClip(array).set_duration(duration).set_fps(FPS)
+
+
 def compose_video(bg_video_path: str, quote: str, subtitle: str,
                   author: str, output_path: str) -> str | None:
     """
@@ -161,7 +197,6 @@ def compose_video(bg_video_path: str, quote: str, subtitle: str,
         clip = VideoFileClip(bg_video_path)
 
         # ── Resize & crop to 1080x1920 vertical ──────────────────
-        # Strategy: scale so shortest dimension fills, then center-crop
         orig_w, orig_h = clip.size
         scale_w = OUTPUT_WIDTH  / orig_w
         scale_h = OUTPUT_HEIGHT / orig_h
@@ -169,7 +204,7 @@ def compose_video(bg_video_path: str, quote: str, subtitle: str,
 
         new_w = int(orig_w * scale)
         new_h = int(orig_h * scale)
-        clip  = clip.resize((new_w, new_h))
+        clip  = _resize_clip(clip, new_w, new_h)
 
         # Center crop
         x1 = (new_w - OUTPUT_WIDTH)  // 2
@@ -182,33 +217,30 @@ def compose_video(bg_video_path: str, quote: str, subtitle: str,
         if clip.duration < TARGET_DURATION:
             loops_needed = int(np.ceil(TARGET_DURATION / clip.duration))
             clip = concatenate_videoclips([clip] * loops_needed)
-        clip = clip.subclip(0, TARGET_DURATION)
-        clip = clip.without_audio()   # remove original audio
+        clip = _subclip(clip, 0, TARGET_DURATION)
+        clip = _remove_audio(clip)
 
         print(f"  ✅ Background ready: {OUTPUT_WIDTH}x{OUTPUT_HEIGHT} @ {TARGET_DURATION}s")
 
         # ── Create text overlay as ImageClip ─────────────────────
         print(f"  ✍️  Rendering text overlay...")
         text_array = _make_text_overlay(quote, subtitle, author)
-        text_clip  = (ImageClip(text_array)
-                      .set_duration(TARGET_DURATION)
-                      .set_fps(FPS))
+        text_clip  = _make_image_clip(text_array, TARGET_DURATION)
 
         # ── Composite ─────────────────────────────────────────────
         final = CompositeVideoClip([clip, text_clip],
                                    size=(OUTPUT_WIDTH, OUTPUT_HEIGHT))
-        final = final.set_fps(FPS)
 
         # ── Export ────────────────────────────────────────────────
         print(f"  💾 Exporting video → {output_path}")
         final.write_videofile(
             output_path,
-            codec    = "libx264",
-            audio    = False,
-            fps      = FPS,
-            preset   = "fast",
+            codec         = "libx264",
+            audio         = False,
+            fps           = FPS,
+            preset        = "fast",
             ffmpeg_params = ["-crf", "23"],
-            logger   = None,   # suppress verbose moviepy logs
+            logger        = None,
         )
 
         # Cleanup

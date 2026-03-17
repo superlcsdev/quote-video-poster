@@ -1,5 +1,7 @@
 requests>=2.31.0
 Pillow>=10.0.0
-moviepy>=1.0.3
+moviepy==1.0.3
 numpy>=1.24.0
 python-dotenv>=1.0.0
+imageio==2.34.0
+imageio-ffmpeg>=0.4.9
