@@ -1,0 +1,6 @@
+.env
+output_videos/
+temp/
+__pycache__/
+*.pyc
+.DS_Store
