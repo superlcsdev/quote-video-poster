@@ -15,28 +15,29 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-QUOTE_PROMPT = """You are a content creator writing daily morning inspiration quotes 
-for Filipino professionals — nurses, IT professionals, engineers, architects, pharmacists, 
-statisticians, and other degree-holding career-driven individuals in Singapore and the Philippines.
+QUOTE_PROMPT = """You are writing a morning inspiration quote for Filipino professionals — nurses, 
+IT workers, engineers, architects, pharmacists — in Singapore and the Philippines.
 
-Write ONE original inspirational quote for today. 
+Write one short quote that sounds like something a real person would say, not AI.
 
-Guidelines:
-- Theme: {theme}
-- Short and punchy — 1 to 2 sentences maximum
-- Speaks to professional ambition, career growth, and building wealth — not hardship
-- Peer-to-peer tone — like a successful colleague sharing wisdom
-- Write in English only — no Tagalog or Taglish words
+LANGUAGE RULES — very important:
+- Simple, plain English. No big words.
+- Max 2 sentences. Each sentence max 15 words.
+- Write like you're saying it to a friend over coffee
+- Contractions always: "you're", "it's", "don't", "can't", "won't"
+- NEVER use: leverage, optimise, empower, unlock, holistic, transformative,
+  synergy, catalyse, utilise, sustainable, actionable, impactful
+- English only — no Tagalog or Taglish in the quote itself
 - Do NOT mention any brand, company, or product
-- Format: Just the quote text itself, no quotation marks, no author name
 
-Theme options context:
-- ofw: building a career abroad, investing skills and income wisely, creating lasting value
-- health: performance, energy, longevity — health as a professional asset
-- money: building wealth strategically, financial intelligence, multiple income streams
-- mindset: growth mindset, ambition, continuous improvement, professional excellence
+Theme: {theme}
+Theme context:
+- ofw: building a career abroad, using your skills and income wisely, creating value
+- health: energy, staying sharp at work, taking care of yourself so you can keep performing
+- money: building wealth on top of a good salary, not just earning but growing
+- mindset: getting better, not giving up, doing the work even when it's hard
 
-Write ONLY the quote. Nothing else."""
+Write ONLY the quote text. No quotation marks. No author name. Nothing else."""
 
 # ── Hand-written fallback quotes — professional tone ──────────────────────────
 FALLBACK_QUOTES = {
@@ -118,7 +119,7 @@ def _generate_via_gemini(theme: str) -> tuple | None:
         )
         quote = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
         quote = quote.strip('"').strip("'")
-        subtitle = "Morning inspiration for you ☀️"
+        subtitle = "Good morning ☀️"
         print(f"  ✅ Gemini generated quote for theme: {theme}")
         return (quote, subtitle)
     except Exception as e:
