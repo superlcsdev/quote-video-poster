@@ -30,31 +30,102 @@ DAY_THEMES = {
 THEMES = ["ofw", "health", "money", "mindset", "success", "biblical"]
 
 
-QUOTE_PROMPT = """You are writing a morning inspiration quote for Filipino professionals
-— nurses, IT workers, engineers, architects — in Singapore and the Philippines.
+QUOTE_PROMPT = """You are writing a morning quote for Filipino professionals in Singapore and Philippines.
+Theme: {theme}
+Today's angle: {angle}
 
-Write ONE original quote. Theme: {theme}
+YOUR JOB: Write ONE quote that stops someone mid-scroll. It must feel like it was written
+specifically for a Filipino nurse, engineer, or IT professional — not a generic human.
 
-LANGUAGE RULES:
-- Simple plain English. Max 2 sentences. Each sentence max 15 words.
-- Sound like a real person talking, not a motivational poster
-- Contractions always: "you're", "it's", "don't", "can't", "won't"
-- NEVER use: leverage, optimise, empower, unlock, holistic, transformative, synergy
-- English only — no Tagalog in the quote
-- No brand names
+STRICT RULES — read these carefully before writing:
 
-THEME CONTEXT:
-- ofw: career abroad, building wealth while working away from family, making it worth it
-- health: energy and performance at work, protecting your body and mind, longevity
-- money: building wealth not just earning, financial habits that compound over time
-- mindset: discipline, resilience, showing up when it's hard, doing the work
-- success: achieving goals, winning attitude, going from where you are to where you want to be
-- biblical: motivational quote using NKJV scripture or biblical wisdom — encouraging,
-  hopeful, and uplifting. For example: "Trust in the LORD with all your heart" (Prov 3:5)
-  or a paraphrase of biblical truth about strength, perseverance, or purpose.
-  Keep it universal — not preachy. One sentence quote, one sentence reflection.
+BANNED PHRASES (automatic reject if you use any of these):
+"don't give up", "keep going", "believe in yourself", "you can do it",
+"hard work pays off", "stay strong", "never stop", "you've got this",
+"it'll pay off", "keep pushing", "your efforts will pay off",
+"you are capable", "trust the process", "you are enough"
 
-Write ONLY the quote text. No quotation marks. No author name. Nothing else."""
+These are banned because they're what every generic motivational account posts.
+If your quote sounds like it could be on a poster in a dentist's waiting room — rewrite it.
+
+WHAT MAKES A GREAT QUOTE (use one of these approaches):
+1. A SHARP OBSERVATION — something true that most people haven't thought about
+   Example: "A nurse who doesn't protect her sleep is giving away the one thing her patients need most."
+2. A REFRAME — takes a familiar idea and flips the angle
+   Example: "The salary you're chasing is someone else's idea of success. Build your own number."
+3. A SPECIFIC TRUTH — concrete, tied to their actual professional life
+   Example: "You optimise code and patient care all day. Your finances deserve the same attention."
+4. A CHALLENGE — calls them to act, not just feel better
+   Example: "The plan you haven't started yet costs more every month you wait."
+5. BIBLICAL (for biblical theme only) — pair a NKJV verse with a one-line professional application
+   Example: "He gives strength to the weary (Isaiah 40:29). That 12-hour shift didn't finish you — it proved you."
+
+LANGUAGE:
+- Max 2 sentences. Each sentence max 15 words.
+- Sound like a smart friend who happens to know the truth — not a life coach
+- Contractions: "you're", "it's", "don't", "can't"
+- NO: leverage, optimise, empower, unlock, holistic, transformative, synergy
+- English only. No brand names.
+
+Write ONLY the quote. No quotation marks. No preamble. No author name."""
+
+# Angles rotate daily so Gemini gets a fresh creative constraint each day
+THEME_ANGLES = {
+    "ofw": [
+        "the financial gap between earning abroad and actually building wealth",
+        "what returning home with nothing means after years of sacrifice",
+        "the difference between the highest earner and the most intentional professional abroad",
+        "why your years abroad are capital — not just income",
+        "building for yourself, not just for the family back home",
+        "the opportunity cost of not investing while working in Singapore",
+        "what 10 years abroad should actually produce financially",
+    ],
+    "health": [
+        "why sleep is a professional skill, not a personal luxury",
+        "the hidden career cost of ignoring your physical health",
+        "burnout as a strategy failure, not a badge of honour",
+        "why nurses and engineers who skip self-care are taking a career risk",
+        "the connection between your body's condition and your professional output",
+        "how small daily health habits compound just like financial investments",
+        "what exhaustion is actually telling a high-performing professional",
+    ],
+    "money": [
+        "the difference between a high salary and actual net worth",
+        "why most professionals with good incomes still feel financially behind",
+        "the math of starting to invest 5 years earlier vs later",
+        "lifestyle inflation as the silent wealth killer for professionals",
+        "why one income stream is a financial risk, not a stable foundation",
+        "the real cost of waiting until you feel ready to invest",
+        "how compounding works against you every month you delay",
+    ],
+    "mindset": [
+        "why discipline on bad days matters more than motivation on good ones",
+        "what separates professionals who advance from those who plateau",
+        "the power of doing the work when no one is watching",
+        "why being consistent beats being talented in the long run",
+        "what happens to your career when you stop choosing comfort",
+        "the identity shift that happens when you commit to growth",
+        "why the hardest step is always the one you take today",
+    ],
+    "success": [
+        "why successful people start before they feel ready",
+        "the real difference between people who achieve and people who plan to",
+        "what most successful professionals did differently in their first 5 years",
+        "why waiting for the right moment is the most expensive habit",
+        "the mindset of someone who wins — and why most people don't have it",
+        "what separates high achievers: it's not talent, it's consistency of action",
+        "the one decision that changes your trajectory more than any skill",
+    ],
+    "biblical": [
+        "God's provision for professionals carrying heavy loads (Isaiah 40:29 or Phil 4:19)",
+        "strength for the weary — for nurses and workers on long shifts (Isaiah 40:31)",
+        "moving forward with purpose when the path is unclear (Prov 3:5-6 or Jer 29:11)",
+        "doing excellent work as an act of faith (Col 3:23)",
+        "not being anxious about the future as a professional (Phil 4:6-7)",
+        "God's plans being bigger than our current circumstances (Jer 29:11 or Eph 3:20)",
+        "the peace that comes from trusting God over our own plans (Prov 16:3)",
+    ],
+}
 
 
 # ── 60 hand-written fallback quotes (10 per theme) ───────────────────────────
@@ -143,11 +214,54 @@ def get_theme_for_today() -> str:
     return DAY_THEMES[datetime.now().weekday()]
 
 
+
+# These are the phrases that make a quote worthless — if Gemini produces them, reject it
+BANNED_PHRASES = [
+    "don't give up", "keep going", "believe in yourself", "you can do it",
+    "hard work pays off", "stay strong", "never stop", "you've got this",
+    "it'll pay off", "keep pushing", "your efforts will pay off",
+    "you are capable", "trust the process", "you are enough",
+    "it will pay off", "efforts will surely", "surely pay off",
+    "don't stop", "just keep", "hang in there", "it gets better",
+]
+
+
+def _is_quality_quote(text: str) -> bool:
+    """Reject generic, bland quotes. Return True only if quote passes quality bar."""
+    lower = text.lower()
+    # Reject if it contains any banned phrase
+    for phrase in BANNED_PHRASES:
+        if phrase in lower:
+            print(f"  ⚠️  Quote rejected — contains banned phrase: '{phrase}'")
+            return False
+    # Reject if it's too short (likely incomplete)
+    if len(text.strip()) < 40:
+        print(f"  ⚠️  Quote rejected — too short ({len(text)} chars)")
+        return False
+    # Reject if it ends with generic motivational sign-offs
+    generic_endings = ["you've got this!", "you can do it!", "keep going!", "don't give up!"]
+    for ending in generic_endings:
+        if lower.strip().endswith(ending):
+            print(f"  ⚠️  Quote rejected — generic ending")
+            return False
+    return True
+
+
+def _get_angle(theme: str) -> str:
+    """Pick a fresh creative angle for Gemini based on date."""
+    angles  = THEME_ANGLES.get(theme, ["a fresh perspective on this topic"])
+    now     = datetime.now()
+    seed    = f"{now.strftime('%Y-%m-%d')}{theme}"
+    idx     = int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(angles)
+    return angles[idx]
+
+
 def _generate_via_gemini(theme: str) -> tuple | None:
     if not GEMINI_API_KEY:
         return None
     try:
-        prompt = QUOTE_PROMPT.format(theme=theme)
+        angle  = _get_angle(theme)
+        prompt = QUOTE_PROMPT.format(theme=theme, angle=angle)
         resp   = requests.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}",
             json={"contents": [{"parts": [{"text": prompt}]}]},
@@ -156,17 +270,21 @@ def _generate_via_gemini(theme: str) -> tuple | None:
         quote = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
         quote = quote.strip('"').strip("'")
 
-        # Subtitle by theme
+        if not _is_quality_quote(quote):
+            print(f"  ⚠️  Gemini output failed quality check — using fallback.")
+            return None
+
         subtitles = {
             "ofw":      "For every professional building far from home 🌏",
             "health":   "Good morning ☀️",
             "money":    "Build what lasts 📈",
             "mindset":  "Good morning ☀️",
             "success":  "Go get it 🏆",
-            "biblical": "Good morning — His mercies are new today 🙏",
+            "biblical": "His mercies are new today 🙏",
         }
         subtitle = subtitles.get(theme, "Good morning ☀️")
-        print(f"  ✅ Gemini generated quote for theme: {theme}")
+        print(f"  ✅ Gemini generated quality quote for theme: {theme}")
+        print(f"     Angle: {angle[:60]}")
         return (quote, subtitle)
     except Exception as e:
         print(f"  ⚠️  Gemini quote error: {e}")
@@ -176,10 +294,10 @@ def _generate_via_gemini(theme: str) -> tuple | None:
 
 def _get_fallback_quote(theme: str) -> tuple:
     quotes = FALLBACK_QUOTES.get(theme, FALLBACK_QUOTES["mindset"])
-    # Use week number + day to rotate — avoids same quote 2 weeks running
-    now      = datetime.now()
-    seed     = f"{now.strftime('%Y-%m-%d')}{theme}{now.isocalendar()[1]}"
-    idx      = int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(quotes)
+    # Seed with date + week number + day-of-year for maximum spread
+    now     = datetime.now()
+    seed    = f"{now.strftime('%Y-%m-%d')}{theme}{now.timetuple().tm_yday}"
+    idx     = int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(quotes)
     return quotes[idx]
 
 

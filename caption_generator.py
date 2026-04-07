@@ -20,48 +20,58 @@ The audience is Filipino professionals — nurses, IT workers, engineers — in 
 Quote: "{quote}"
 Theme: {theme}
 
-LANGUAGE RULES:
-- 2–3 short sentences max. Each sentence under 15 words.
-- Sound like a real person, not a motivational poster
-- Simple everyday words. Contractions always: "you're", "it's", "don't"
-- NEVER use: leverage, optimise, empower, transformative, holistic, actionable
-- Start with an emoji that fits the mood
-- End with a question or short CTA that feels natural
-- Don't repeat the quote. Don't mention any brand or product.
-- For biblical theme: keep it warm and inclusive, not preachy
+BANNED (automatic reject if you use any of these):
+"one win you're proud of", "what's one win", "you're building something great",
+"it's tough sometimes", "every effort", "you've got this", "keep pushing",
+"what's your morning", "share your thoughts", "what resonates with you"
+
+WHAT WORKS INSTEAD:
+- React to the quote with a sharp observation, not cheerleading
+- Ask a question that relates to their SPECIFIC professional life
+  e.g. "Are you actually investing what you earn, or just earning more?" (money)
+  e.g. "When did you last take a full day off without guilt?" (health)
+  e.g. "What's one thing you've been putting off that would change everything?" (success)
+- Or share a brief honest thought that connects the quote to real life
+
+RULES:
+- 2–3 short sentences max. Each under 15 words.
+- Sound like a real person — not a motivational coach
+- Contractions always. Simple words.
+- Start with an emoji. End with a CTA.
+- Don't repeat the quote word for word.
 
 Write ONLY the caption. No preamble."""
 
 FALLBACK_CAPTIONS = {
     "ofw": [
-        "🌅 Good morning.\nYou left home to build something better — don't lose sight of that.\nWhat's keeping you going this week? Drop it below 👇",
-        "💫 This one's for anyone building their career far from home.\nIt's not easy. But it's worth it.\nDrop a ❤️ if this hits close 👇",
-        "☀️ Start the day with this.\nYou're not just working — you're building.\nWhich part of this speaks to you? Comment below 💬",
+        "🌏 Good morning.\nYou're earning in one of the world's strongest currencies. Are you building with it or just spending it?\nDrop a 💬 below — what are you building right now?",
+        "💫 This one's for anyone working abroad and wondering if it's all worth it.\nIt is — but only if you make it worth it intentionally.\nWhat's your plan for when you go home? 👇",
+        "☀️ You didn't cross an ocean just to send money home and repeat.\nAt some point the sacrifice has to build something permanent.\nWhat does that look like for you? Comment below 💬",
     ],
     "health": [
-        "🌿 Good morning.\nYour body keeps score — especially after long shifts and late nights.\nWhat's one thing you're doing for yourself today? 💬",
-        "💚 This one's for professionals who give everything at work but forget to take care of themselves.\nYou matter too.\nDrop your healthy habit below 👇",
-        "🌸 Morning check-in.\nAre you running on full or running on empty?\nOne small thing today. That's all it takes 💬",
+        "🌿 Honest question — when did you last have a full health check?\nNot when you were sick. An actual check-up.\nDrop your answer below, no judgment 👇",
+        "💚 You push through 12-hour shifts. You cover for colleagues. You keep going.\nBut who's making sure you're okay?\nTake 5 minutes for yourself today. That's it. 🌱",
+        "🌸 The professionals who last longest in demanding careers aren't the toughest.\nThey're the ones who figured out how to recover properly.\nHow do you recharge? Share below 👇",
     ],
     "money": [
-        "💰 Good morning.\nA good salary is just the start — what you build with it is what counts.\nWhat's your #1 money goal right now? 👇",
-        "📈 This hit differently this morning.\nEarning well and building wealth aren't the same thing.\nWhere are you in this journey? 💬",
-        "🌟 Quick morning reminder.\nYour income is the seed. What you do with it is the garden.\nSave this and share with someone who needs it 👇",
+        "💰 Here's an uncomfortable question — do you actually know your savings rate?\nNot roughly. Exactly.\nIf not, that's the first thing to fix this week 👇",
+        "📈 Most people earning good salaries still feel financially behind after 5 years.\nIt's not a salary problem. It's a system problem.\nAre you building a system? Comment below 💬",
+        "🌟 Your next pay day is coming.\nThe question isn't how much — it's what percentage you're keeping.\nDrop your savings rate target below. Let's talk 👇",
     ],
     "mindset": [
-        "🔥 Good morning.\nSome days are harder than others. Show up anyway.\nDrop a 💪 if you're ready to make today count 👇",
-        "💫 This is for anyone who needs a reset today.\nProgress doesn't have to be dramatic — it just has to be real.\nWhat's one thing you're working on? 💬",
-        "🌅 Start with this thought.\nYou don't need a perfect plan. You need to take the next step.\nDrop a ❤️ if this resonates 👇",
+        "🔥 Good morning.\nThe version of you from 3 years ago would be impressed by where you are.\nDon't forget that — and don't stop now 💪",
+        "💫 Most people are waiting to feel motivated before they start.\nBut motivation follows action — not the other way around.\nWhat's one thing you'll do today without waiting to feel ready? 👇",
+        "🌅 Discipline is just doing what needs doing, whether you feel like it or not.\nThat's not complicated. It's just hard.\nWhat are you choosing to show up for today? 💬",
     ],
     "success": [
-        "🏆 Good morning.\nSuccess doesn't wait for perfect conditions — it rewards people who start anyway.\nWhat's one step you're taking today? Drop it below 👇",
-        "🔥 This is your morning push.\nThe gap between where you are and where you want to be is just work.\nAre you doing the work? Comment below 💬",
-        "⚡ Start the day with this.\nEveryone wants results. Not everyone does what it takes. Be the one who does.\nDrop a 💪 if this is your mindset 👇",
+        "🏆 Good morning.\nThe people who achieve what you want are not luckier or more talented.\nThey just stopped waiting and started. When are you starting? 👇",
+        "🔥 Success leaves clues — and the biggest one is this:\nMost people who made it did it while still afraid.\nWhat's the fear that's been keeping you from your next move? 💬",
+        "⚡ You know what you need to do.\nYou probably even know how.\nThe only question left is when. Drop your answer below 👇",
     ],
     "biblical": [
-        "🙏 Good morning.\nHis mercies are new every morning — including today, whatever yesterday looked like.\nDrop a ❤️ if you needed this reminder 👇",
-        "✨ Starting the day with this truth.\nYou are not facing today alone. That changes everything.\nShare this with someone who needs to hear it 🙏",
-        "🌅 Good morning.\nWhatever you're carrying today — you were given exactly the strength you need for it.\nDrop a 🙏 if this speaks to you 👇",
+        "🙏 Good morning.\nHis mercies are new every single morning — including today, whatever yesterday looked like.\nDrop a ❤️ if you needed that reminder 👇",
+        "✨ You are not carrying today alone.\nThat changes the weight of everything you're facing right now.\nShare this with someone who needs to hear it 🙏",
+        "🌅 Whatever you're stepping into today — He's already been there.\nThat's not a small thing. Walk into your day knowing that.\nDrop a 🙏 if this is your anchor today 👇",
     ],
 }
 
