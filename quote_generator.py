@@ -57,8 +57,13 @@ WHAT MAKES A GREAT QUOTE (use one of these approaches):
    Example: "You optimise code and patient care all day. Your finances deserve the same attention."
 4. A CHALLENGE — calls them to act, not just feel better
    Example: "The plan you haven't started yet costs more every month you wait."
-5. BIBLICAL (for biblical theme only) — pair a NKJV verse with a one-line professional application
-   Example: "He gives strength to the weary (Isaiah 40:29). That 12-hour shift didn't finish you — it proved you."
+5. BIBLICAL THEME ONLY — strict rules:
+   - Quote the NKJV scripture WORD FOR WORD. No paraphrasing. No rewording.
+   - Format: "[Exact NKJV verse text]" — [Book Chapter:Verse] (NKJV)
+   - Example: "I can do all things through Christ who strengthens me." — Philippians 4:13 (NKJV)
+   - Example: "For I know the thoughts that I think toward you, says the LORD, thoughts of peace and not of evil, to give you a future and a hope." — Jeremiah 29:11 (NKJV)
+   - The verse alone IS the quote. Do NOT add commentary, application, or extra sentences.
+   - Use the verse given in Today's angle. Copy it exactly.
 
 LANGUAGE:
 - Max 2 sentences. Each sentence max 15 words.
@@ -117,13 +122,13 @@ THEME_ANGLES = {
         "the one decision that changes your trajectory more than any skill",
     ],
     "biblical": [
-        "God's provision for professionals carrying heavy loads (Isaiah 40:29 or Phil 4:19)",
-        "strength for the weary — for nurses and workers on long shifts (Isaiah 40:31)",
-        "moving forward with purpose when the path is unclear (Prov 3:5-6 or Jer 29:11)",
-        "doing excellent work as an act of faith (Col 3:23)",
-        "not being anxious about the future as a professional (Phil 4:6-7)",
-        "God's plans being bigger than our current circumstances (Jer 29:11 or Eph 3:20)",
-        "the peace that comes from trusting God over our own plans (Prov 16:3)",
+        'Use this exact verse: "Trust in the LORD with all your heart, and lean not on your own understanding; in all your ways acknowledge Him, and He shall direct your paths." — Proverbs 3:5-6 (NKJV)',
+        'Use this exact verse: "For I know the thoughts that I think toward you, says the LORD, thoughts of peace and not of evil, to give you a future and a hope." — Jeremiah 29:11 (NKJV)',
+        'Use this exact verse: "I can do all things through Christ who strengthens me." — Philippians 4:13 (NKJV)',
+        'Use this exact verse: "And whatever you do, do it heartily, as to the Lord and not to men." — Colossians 3:23 (NKJV)',
+        'Use this exact verse: "Be strong and of good courage; do not be afraid, nor be dismayed, for the LORD your God is with you wherever you go." — Joshua 1:9 (NKJV)',
+        'Use this exact verse: "Now to Him who is able to do exceedingly abundantly above all that we ask or think, according to the power that works in us." — Ephesians 3:20 (NKJV)',
+        'Use this exact verse: "And we know that all things work together for good to those who love God, to those who are the called according to His purpose." — Romans 8:28 (NKJV)',
     ],
 }
 
@@ -196,16 +201,16 @@ FALLBACK_QUOTES = {
     ],
 
     "biblical": [
-        ("Trust in the LORD with all your heart, not your own understanding — and He will direct your path. (Prov 3:5–6)", "Trust His plan 🙏"),
-        ("I can do all things through Christ who strengthens me. Your limitations are not the final word. (Phil 4:13)", "Strength in Him 💪"),
-        ("For God has not given us a spirit of fear, but of power, love, and a sound mind. (2 Tim 1:7)", "Walk in power ✨"),
-        ("Commit your work to the LORD, and your plans will be established. Show up with excellence today. (Prov 16:3)", "Work with purpose 🙏"),
-        ("Be strong and courageous. The LORD your God is with you wherever you go. (Josh 1:9)", "He goes with you 💫"),
-        ("Delight yourself in the LORD, and He will give you the desires of your heart. (Psalm 37:4)", "Seek Him first 🌅"),
-        ("Now to Him who is able to do exceedingly abundantly above all that we ask or think. (Eph 3:20)", "He does more 🌟"),
-        ("The LORD is my shepherd; I shall not want. Even on your hardest day, you are provided for. (Psalm 23:1)", "You are provided for 🙏"),
-        ("And we know that all things work together for good to those who love God. (Rom 8:28)", "Trust the process ✨"),
-        ("For I know the plans I have for you — plans to prosper you and give you hope. (Jer 29:11)", "His plans are good 💎"),
+        ('"Trust in the LORD with all your heart, and lean not on your own understanding; in all your ways acknowledge Him, and He shall direct your paths." — Proverbs 3:5-6 (NKJV)', "He will direct your path 🙏"),
+        ('"I can do all things through Christ who strengthens me." — Philippians 4:13 (NKJV)', "Strength in Him 💪"),
+        ('"For God has not given us a spirit of fear, but of power and of love and of a sound mind." — 2 Timothy 1:7 (NKJV)', "Walk in His power ✨"),
+        ('"And whatever you do, do it heartily, as to the Lord and not to men." — Colossians 3:23 (NKJV)', "Work with purpose 🙏"),
+        ('"Be strong and of good courage; do not be afraid, nor be dismayed, for the LORD your God is with you wherever you go." — Joshua 1:9 (NKJV)', "He goes with you 💫"),
+        ('"Delight yourself also in the LORD, and He shall give you the desires of your heart." — Psalm 37:4 (NKJV)', "Seek Him first 🌅"),
+        ('"Now to Him who is able to do exceedingly abundantly above all that we ask or think, according to the power that works in us." — Ephesians 3:20 (NKJV)', "He does more 🌟"),
+        ('"The LORD is my shepherd; I shall not want." — Psalm 23:1 (NKJV)', "You are provided for 🙏"),
+        ('"And we know that all things work together for good to those who love God, to those who are the called according to His purpose." — Romans 8:28 (NKJV)', "His purpose holds 🙏"),
+        ('"For I know the thoughts that I think toward you, says the LORD, thoughts of peace and not of evil, to give you a future and a hope." — Jeremiah 29:11 (NKJV)', "His plans are good 💎"),
     ],
 }
 
