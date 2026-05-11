@@ -11,9 +11,10 @@ BIBLICAL: Exact NKJV scripture ONLY — no paraphrase, no commentary.
 """
 
 import os
+import json
 import hashlib
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -132,8 +133,13 @@ FALLBACK_QUOTES = {
         ('"It does not matter how slowly you go as long as you do not stop." — Confucius', "Keep going 🏃"),
         ('"Success usually comes to those who are too busy to be looking for it." — Henry David Thoreau', "Stay busy building 💎"),
         ('"In the long run, we shape our lives, and we shape ourselves." — Eleanor Roosevelt', "Shape your life 🌟"),
-        ('"The only way to achieve the impossible is to believe it is possible." — Charles Kingsleigh', "Believe it 💡"),
         ('"What you do today can improve all your tomorrows." — Ralph Marston', "Make today count 🌅"),
+        ('"The only way to achieve the impossible is to believe it is possible." — Charles Kingsleigh', "Believe it 💡"),
+        ('"Patience, persistence, and perspiration make an unbeatable combination for success." — Napoleon Hill', "Stay the course 💪"),
+        ('"The price of anything is the amount of life you exchange for it." — Henry David Thoreau', "Make it worth it 🎯"),
+        ('"Life is not measured by the number of breaths we take, but by the moments that take our breath away." — Maya Angelou', "Live fully 🌟"),
+        ('"Do not wait; the time will never be just right. Start where you stand." — Napoleon Hill', "Start where you are 🔥"),
+        ('"The man who moves a mountain begins by carrying away small stones." — Confucius', "One stone at a time 🏔️"),
     ],
     "health": [
         ('"Take care of your body. It\'s the only place you have to live." — Jim Rohn', "Invest in yourself 💚"),
@@ -146,6 +152,11 @@ FALLBACK_QUOTES = {
         ('"To keep the body in good health is a duty, otherwise we shall not be able to keep our mind strong and clear." — Buddha', "Mind and body 🧠"),
         ('"Rest when you\'re weary. Refresh and renew yourself, your body, your mind, your spirit." — Ralph Marston', "Rest is productive 😴"),
         ('"A healthy outside starts from the inside." — Robert Urich', "Start within 🌱"),
+        ('"The body achieves what the mind believes." — Napoleon Hill', "Believe it first 💡"),
+        ('"To ensure good health: eat lightly, breathe deeply, live moderately, cultivate cheerfulness." — William Londen', "Simple steps 🌿"),
+        ('"You can\'t enjoy wealth if you\'re not in good health." — Anonymous', "Health before wealth 💚"),
+        ('"Happiness is nothing more than good health and a bad memory." — Albert Schweitzer', "Protect both 😄"),
+        ('"It is health that is real wealth and not pieces of gold and silver." — Mahatma Gandhi', "True wealth 🌟"),
     ],
     "money": [
         ('"The stock market is a device for transferring money from the impatient to the patient." — Warren Buffett', "Be patient 📈"),
@@ -158,6 +169,11 @@ FALLBACK_QUOTES = {
         ('"Wealth is not about having a lot of money; it\'s about having a lot of options." — Chris Rock', "Build your options 🌟"),
         ('"The goal isn\'t more money. The goal is living life on your own terms." — Chris Brogan', "Life on your terms 🚀"),
         ('"The rich invest in time; the poor invest in money." — Warren Buffett', "Invest your time 🕐"),
+        ('"Never spend your money before you have earned it." — Thomas Jefferson', "Earn first 💡"),
+        ('"Formal education will make you a living; self-education will make you a fortune." — Jim Rohn', "Keep learning 📚"),
+        ('"Rich people have small TVs and big libraries, and poor people have small libraries and big TVs." — Zig Ziglar', "Feed your mind 💎"),
+        ('"The habit of saving is itself an education; it fosters every virtue, teaches self-denial, cultivates the sense of order." — T.T. Munger', "Build the habit 🌱"),
+        ('"Invest in yourself. Your career is the engine of your wealth." — Paul Clitheroe', "Engine of wealth 🚀"),
     ],
     "mindset": [
         ('"We are what we repeatedly do. Excellence, then, is not an act, but a habit." — Aristotle', "Build the habit ⭐"),
@@ -170,6 +186,11 @@ FALLBACK_QUOTES = {
         ('"It always seems impossible until it\'s done." — Nelson Mandela', "Do it anyway 🏆"),
         ('"The secret of change is to focus all of your energy not on fighting the old, but on building the new." — Socrates', "Build the new 🌱"),
         ('"Your time is limited, so don\'t waste it living someone else\'s life." — Steve Jobs', "Live your life 💫"),
+        ('"Motivation is what gets you started. Habit is what keeps you going." — Jim Rohn', "Build the habit ⚡"),
+        ('"The secret of your success is determined by your daily agenda." — John C. Maxwell', "Check your agenda 📅"),
+        ('"You will never always be motivated, so you must learn to be disciplined." — Anonymous', "Choose discipline 💪"),
+        ('"A year from now you may wish you had started today." — Karen Lamb', "Start today 🔥"),
+        ('"Do something today that your future self will thank you for." — Sean Patrick Flanery', "For future you 🌟"),
     ],
     "success": [
         ('"Success is not final, failure is not fatal: it is the courage to continue that counts." — Winston Churchill', "Have courage 🔥"),
@@ -182,6 +203,11 @@ FALLBACK_QUOTES = {
         ('"The difference between who you are and who you want to be is what you do." — Unknown', "Do the work ⚡"),
         ('"Success is liking yourself, liking what you do, and liking how you do it." — Maya Angelou', "Like all three 💫"),
         ('"You miss 100% of the shots you don\'t take." — Wayne Gretzky', "Take the shot 🎯"),
+        ('"The secret to success is to know something nobody else knows." — Aristotle Onassis', "Know more 📚"),
+        ('"Success is not the key to happiness. Happiness is the key to success." — Albert Schweitzer', "Find your why 😊"),
+        ('"The road to success is always under construction." — Lily Tomlin', "Keep building 🚧"),
+        ('"Action is the foundational key to all success." — Pablo Picasso', "Take action now 🔥"),
+        ('"There are no secrets to success. It is the result of preparation, hard work, and learning from failure." — Colin Powell', "No shortcuts 💪"),
     ],
     "biblical": [
         ('"Trust in the LORD with all your heart, and lean not on your own understanding; in all your ways acknowledge Him, and He shall direct your paths." — Proverbs 3:5-6 (NKJV)', "He will direct you 🙏"),
@@ -194,6 +220,11 @@ FALLBACK_QUOTES = {
         ('"The LORD is my shepherd; I shall not want." — Psalm 23:1 (NKJV)', "You are provided for 🙏"),
         ('"And we know that all things work together for good to those who love God, to those who are the called according to His purpose." — Romans 8:28 (NKJV)', "His purpose holds ✨"),
         ('"For I know the thoughts that I think toward you, says the LORD, thoughts of peace and not of evil, to give you a future and a hope." — Jeremiah 29:11 (NKJV)', "His plans are good 💎"),
+        ('"But those who wait on the LORD shall renew their strength; they shall mount up with wings like eagles." — Isaiah 40:31 (NKJV)', "Renew your strength 🦅"),
+        ('"The LORD bless you and keep you; the LORD make His face shine upon you, and be gracious to you." — Numbers 6:24-25 (NKJV)', "You are blessed 🙏"),
+        ('"Come to Me, all you who labor and are heavy laden, and I will give you rest." — Matthew 11:28 (NKJV)', "Find rest in Him 💚"),
+        ('"Have I not commanded you? Be strong and of good courage; do not be afraid." — Joshua 1:9a (NKJV)', "He commands it 💪"),
+        ('"But seek first the kingdom of God and His righteousness, and all these things shall be added to you." — Matthew 6:33 (NKJV)', "Seek first 🌅"),
     ],
 }
 
@@ -233,12 +264,78 @@ def get_theme_for_today() -> str:
     return DAY_THEMES[datetime.now().weekday()]
 
 
+
+# ── Quote history — prevents repeats ──────────────────────────────────────────
+QUOTE_HISTORY_FILE = "quote_history.json"
+QUOTE_HISTORY_DAYS = 60   # don't repeat any quote within this window
+
+
+def _load_quote_history() -> dict:
+    """Load {quote_key: last_shown_date} from file."""
+    if not os.path.exists(QUOTE_HISTORY_FILE):
+        return {}
+    try:
+        with open(QUOTE_HISTORY_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _save_quote_history(history: dict):
+    """Persist history, pruning entries older than QUOTE_HISTORY_DAYS."""
+    cutoff = (datetime.now() - timedelta(days=QUOTE_HISTORY_DAYS)).isoformat()
+    recent = {k: v for k, v in history.items() if v >= cutoff}
+    try:
+        with open(QUOTE_HISTORY_FILE, "w") as f:
+            json.dump(recent, f, indent=2)
+    except Exception as e:
+        print(f"  ⚠️  Could not save quote history: {e}")
+
+
+def save_shown_quote(theme: str, idx: int):
+    """Record that quote[idx] for this theme was shown today."""
+    history = _load_quote_history()
+    key     = f"{theme}:{idx}"
+    history[key] = datetime.now().isoformat()
+    _save_quote_history(history)
+    print(f"  📝 Quote history saved: {key}")
+
+
+def _pick_quote_index(theme: str, pool_size: int) -> int:
+    """
+    Pick the quote index least recently shown.
+    Guarantees no repeat until all quotes in the pool are exhausted.
+    """
+    history = _load_quote_history()
+    cutoff  = (datetime.now() - timedelta(days=QUOTE_HISTORY_DAYS)).isoformat()
+
+    # Quotes not shown within the history window
+    available = [
+        i for i in range(pool_size)
+        if history.get(f"{theme}:{i}", "1970-01-01") < cutoff
+    ]
+
+    if not available:
+        # All shown recently — pick the one shown longest ago
+        print(f"  ⚠️  All {pool_size} quotes for '{theme}' shown recently "
+              f"— picking oldest shown.")
+        available = list(range(pool_size))
+
+    # Pick the one shown longest ago (oldest date wins; use index as tiebreak)
+    def last_shown(i: int) -> str:
+        return history.get(f"{theme}:{i}", "1970-01-01")
+
+    chosen = min(available, key=lambda i: (last_shown(i), i))
+    print(f"  🎲 Selected quote index {chosen} for theme '{theme}' "
+          f"(last shown: {last_shown(chosen)[:10]})")
+    return chosen
+
+
 def _get_fallback_quote(theme: str) -> tuple:
+    """Pick a fallback quote using history-aware rotation. No MD5 hash."""
     quotes = FALLBACK_QUOTES.get(theme, FALLBACK_QUOTES["mindset"])
-    now    = datetime.now()
-    seed   = f"{now.strftime('%Y-%m-%d')}{theme}{now.timetuple().tm_yday}"
-    idx    = int(hashlib.md5(seed.encode()).hexdigest(), 16) % len(quotes)
-    return quotes[idx]
+    idx    = _pick_quote_index(theme, len(quotes))
+    return quotes[idx], idx  # return idx so caller can save history
 
 
 def _generate_via_gemini(theme: str) -> tuple | None:
@@ -285,14 +382,17 @@ def generate_quote(theme: str = None) -> dict:
     # Biblical always uses fallback library (exact NKJV, no Gemini)
     if theme == "biblical":
         print("  📖 Biblical theme — using NKJV library directly.")
-        quote, subtitle = _get_fallback_quote(theme)
+        (quote, subtitle), idx = _get_fallback_quote(theme)
+        save_shown_quote(theme, idx)
     else:
         result = _generate_via_gemini(theme)
         if result:
+            # Gemini succeeded — no index to save (it's a unique generated quote)
             quote, subtitle = result
         else:
             print("  ⚠️  Using fallback quote library.")
-            quote, subtitle = _get_fallback_quote(theme)
+            (quote, subtitle), idx = _get_fallback_quote(theme)
+            save_shown_quote(theme, idx)
 
     return {
         "theme":    theme,
