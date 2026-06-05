@@ -292,54 +292,90 @@ def _save_quote_history(history: dict):
         print(f"  ⚠️  Could not save quote history: {e}")
 
 
-def save_shown_quote(theme: str, idx: int):
-    """Record that quote[idx] for this theme was shown today."""
+
+
+def save_shown_quote(theme: str, idx: int = None, content_hash: str = None):
+    """
+    Record that a quote was shown today.
+    idx: fallback library index (for fallback picks)
+    content_hash: MD5 of quote text (for Gemini-generated quotes)
+    """
     history = _load_quote_history()
-    key     = f"{theme}:{idx}"
-    history[key] = datetime.now().isoformat()
+    now     = datetime.now().isoformat()
+    if idx is not None:
+        history[f"{theme}:{idx}"] = now
+    if content_hash is not None:
+        history[f"{theme}:gemini:{content_hash}"] = now
+    key = f"{theme}:{idx}" if idx is not None else f"{theme}:gemini:{content_hash[:8] if content_hash else '?'}"
     _save_quote_history(history)
     print(f"  📝 Quote history saved: {key}")
+
+
+def _quote_hash(text: str) -> str:
+    return hashlib.md5(text.strip().lower().encode()).hexdigest()[:12]
+
+
+def _gemini_quote_seen_recently(theme: str, quote_text: str) -> bool:
+    history = _load_quote_history()
+    cutoff  = (datetime.now() - timedelta(days=QUOTE_HISTORY_DAYS)).isoformat()
+    key     = f"{theme}:gemini:{_quote_hash(quote_text)}"
+    return history.get(key, "1970-01-01") >= cutoff
+
+
+def _gemini_quote_matches_fallback(theme: str, quote_text: str):
+    """Check if Gemini generated a quote from our fallback library. Returns index or None."""
+    pool      = FALLBACK_QUOTES.get(theme, [])
+    quote_low = quote_text.strip().lower()
+    for i, (fq, _) in enumerate(pool):
+        if fq.strip().lower()[:40] in quote_low or quote_low[:40] in fq.strip().lower():
+            return i
+    return None
 
 
 def _pick_quote_index(theme: str, pool_size: int) -> int:
     """
     Pick the quote index least recently shown.
-    Guarantees no repeat until all quotes in the pool are exhausted.
+    Uses day-seeded random tiebreak among equally-old quotes
+    so index 0 is NOT always chosen when history is empty.
     """
     history = _load_quote_history()
     cutoff  = (datetime.now() - timedelta(days=QUOTE_HISTORY_DAYS)).isoformat()
 
-    # Quotes not shown within the history window
     available = [
         i for i in range(pool_size)
         if history.get(f"{theme}:{i}", "1970-01-01") < cutoff
     ]
 
     if not available:
-        # All shown recently — pick the one shown longest ago
-        print(f"  ⚠️  All {pool_size} quotes for '{theme}' shown recently "
-              f"— picking oldest shown.")
+        print(f"  ⚠️  All {pool_size} quotes for '{theme}' shown recently — picking oldest.")
         available = list(range(pool_size))
 
-    # Pick the one shown longest ago (oldest date wins; use index as tiebreak)
     def last_shown(i: int) -> str:
         return history.get(f"{theme}:{i}", "1970-01-01")
 
-    chosen = min(available, key=lambda i: (last_shown(i), i))
-    print(f"  🎲 Selected quote index {chosen} for theme '{theme}' "
-          f"(last shown: {last_shown(chosen)[:10]})")
+    # Group by oldest date, then pick randomly from that group
+    oldest_date = min(last_shown(i) for i in available)
+    oldest_pool = [i for i in available if last_shown(i) == oldest_date]
+
+    # Day-seeded deterministic random — different every day, consistent within a day
+    day_seed = int(hashlib.md5(
+        f"{datetime.now().strftime('%Y-%m-%d')}{theme}tiebreak".encode()
+    ).hexdigest(), 16)
+    chosen = oldest_pool[day_seed % len(oldest_pool)]
+
+    print(f"  🎲 Selected index {chosen} for '{theme}' "
+          f"(last shown: {last_shown(chosen)[:10]}, "
+          f"{len(oldest_pool)} in oldest group)")
     return chosen
 
 
 def _get_fallback_quote(theme: str) -> tuple:
-    """Pick a fallback quote using history-aware rotation. No MD5 hash."""
     quotes = FALLBACK_QUOTES.get(theme, FALLBACK_QUOTES["mindset"])
     idx    = _pick_quote_index(theme, len(quotes))
-    return quotes[idx], idx  # return idx so caller can save history
+    return quotes[idx], idx
 
 
-def _generate_via_gemini(theme: str) -> tuple | None:
-    # Biblical quotes NEVER go through Gemini — exact NKJV only from fallback library
+def _generate_via_gemini(theme: str):
     if theme == "biblical":
         return None
     if not GEMINI_API_KEY:
@@ -358,6 +394,11 @@ def _generate_via_gemini(theme: str) -> tuple | None:
         if not _is_quality_quote(quote):
             return None
 
+        # Reject if this exact quote was shown recently
+        if _gemini_quote_seen_recently(theme, quote):
+            print(f"  ⚠️  Gemini generated a recently-shown quote — discarding.")
+            return None
+
         subtitles = {
             "ofw":     "For every professional building far from home 🌏",
             "health":  "Good morning ☀️",
@@ -366,7 +407,7 @@ def _generate_via_gemini(theme: str) -> tuple | None:
             "success": "Go get it 🏆",
         }
         subtitle = subtitles.get(theme, "Good morning ☀️")
-        print(f"  ✅ Gemini quote for theme: {theme} | angle: {angle[:50]}")
+        print(f"  ✅ Gemini quote | theme: {theme} | angle: {angle[:50]}")
         return (quote, subtitle)
     except Exception as e:
         print(f"  ⚠️  Gemini quote error: {e}")
@@ -379,20 +420,31 @@ def generate_quote(theme: str = None) -> dict:
 
     print(f"\n💬 Generating quote — theme: {theme.upper()}")
 
-    # Biblical always uses fallback library (exact NKJV, no Gemini)
+    quote    = None
+    subtitle = None
+
     if theme == "biblical":
         print("  📖 Biblical theme — using NKJV library directly.")
         (quote, subtitle), idx = _get_fallback_quote(theme)
-        save_shown_quote(theme, idx)
+        save_shown_quote(theme, idx=idx)
+
     else:
-        result = _generate_via_gemini(theme)
-        if result:
-            # Gemini succeeded — no index to save (it's a unique generated quote)
-            quote, subtitle = result
+        gemini_result = _generate_via_gemini(theme)
+        if gemini_result:
+            quote, subtitle = gemini_result
+            # Check if Gemini quote is actually from our fallback library
+            lib_idx = _gemini_quote_matches_fallback(theme, quote)
+            if lib_idx is not None:
+                # Known quote — track by both index AND content hash
+                save_shown_quote(theme, idx=lib_idx, content_hash=_quote_hash(quote))
+                print(f"  ℹ️  Gemini matched fallback index {lib_idx} — tracked in history")
+            else:
+                # Original Gemini quote — track by content hash
+                save_shown_quote(theme, content_hash=_quote_hash(quote))
         else:
             print("  ⚠️  Using fallback quote library.")
             (quote, subtitle), idx = _get_fallback_quote(theme)
-            save_shown_quote(theme, idx)
+            save_shown_quote(theme, idx=idx)
 
     return {
         "theme":    theme,
