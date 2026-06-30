@@ -42,29 +42,46 @@ motivation, financial wisdom, health, and success mindset.
 Theme: {theme}
 Today's angle: {angle}
 
-Write or select ONE universally powerful quote. It must be impactful by itself —
+Write or select ONE universally powerful quote. It must be impactful by itself
 without needing to know the reader's profession.
 
 STRICT RULES:
 
-BANNED — automatic reject if used:
-"don't give up", "keep going", "believe in yourself", "you can do it",
-"hard work pays off", "stay strong", "never stop", "you've got this",
-"it'll pay off", "keep pushing", "your efforts will pay off",
-"you are capable", "trust the process", "you are enough",
-"nurses", "IT professionals", "engineers", "OFWs", "abroad",
-"optimise", "leverage", "empower", "holistic", "synergy"
+BANNED PHRASES - automatic reject:
+don't give up, keep going, believe in yourself, you can do it,
+hard work pays off, stay strong, never stop, you've got this,
+it'll pay off, keep pushing, your efforts will pay off,
+you are capable, trust the process, you are enough,
+nurses, IT professionals, engineers, OFWs, abroad,
+optimise, leverage, empower, holistic, synergy
+
+OVERUSED QUOTES - do NOT use any of these ever:
+- We are what we repeatedly do. Excellence is not an act, but a habit. (Aristotle)
+- Someone is sitting in the shade today because someone planted a tree. (Buffett)
+- Whether you think you can or you think you can't, you're right. (Ford)
+- The secret of getting ahead is getting started. (Twain)
+- In the middle of every difficulty lies opportunity. (Einstein)
+- It always seems impossible until it's done. (Mandela)
+- You miss 100% of the shots you don't take. (Gretzky)
+- Success is not final, failure is not fatal. (Churchill)
+- Take care of your body. It's the only place you have to live. (Jim Rohn)
+- The first wealth is health. (Emerson)
+- Do not save what is left after spending. (Buffett)
+- The stock market transfers money from the impatient to the patient. (Buffett)
+- The only limit to our realisation of tomorrow will be our doubts. (Roosevelt)
+
+Instead, find a LESS FAMOUS quote from a credible person, or write an original
+insight. Something the reader is unlikely to have seen recently.
 
 WHAT MAKES A GREAT QUOTE:
-- Timeless and universally true — anyone reading this can feel it
-- Can be from a famous person: Warren Buffett, Jim Rohn, Robert Kiyosaki,
-  Winston Churchill, Einstein, Steve Jobs, Aristotle, Roosevelt, Maya Angelou, etc.
-- Or an original quote with razor-sharp insight on the theme
+- A less-quoted line from a well-known person (not their signature quote)
+- Or a quote from a lesser-known but credible author, thinker, entrepreneur
+- Timeless and universally true
 - About: delayed gratification, discipline, compound growth, health as wealth,
   courage, building long-term wealth, success mindset
 
 FORMAT:
-- If from a famous person: "[Quote]" — [Full Name]
+- If from a person: [Quote text] - [Full Name]
 - If original: just the quote, no attribution
 - Max 2 sentences. No profession-specific references.
 
@@ -269,16 +286,61 @@ def get_theme_for_today() -> str:
 QUOTE_HISTORY_FILE = "quote_history.json"
 QUOTE_HISTORY_DAYS = 60   # don't repeat any quote within this window
 
+# These are the canonical "default" quotes every AI defaults to.
+# We ban them from Gemini AND pre-seed history so fallback skips them first.
+OVERUSED_QUOTES = [
+    "we are what we repeatedly do",          # Aristotle habit
+    "someone is sitting in the shade",        # Buffett tree
+    "whether you think you can",              # Ford
+    "secret of getting ahead is getting started",  # Twain
+    "in the middle of every difficulty",      # Einstein
+    "it always seems impossible until",       # Mandela
+    "you miss 100% of the shots",             # Gretzky
+    "success is not final, failure is not fatal",  # Churchill
+    "take care of your body. it's the only place",  # Jim Rohn
+    "the first wealth is health",             # Emerson
+    "do not save what is left after spending",  # Buffett
+    "stock market is a device for transferring",  # Buffett
+]
+
+
+def _is_overused(quote_text: str) -> bool:
+    """Return True if this quote is in the overused canonical list."""
+    lower = quote_text.strip().lower()
+    return any(marker in lower for marker in OVERUSED_QUOTES)
+
 
 def _load_quote_history() -> dict:
-    """Load {quote_key: last_shown_date} from file."""
-    if not os.path.exists(QUOTE_HISTORY_FILE):
-        return {}
-    try:
-        with open(QUOTE_HISTORY_FILE) as f:
-            return json.load(f)
-    except Exception:
-        return {}
+    """
+    Load {quote_key: last_shown_date} from file.
+    If file is empty or missing, pre-seed overused quotes so they go to
+    the back of the queue immediately — preventing Gemini defaults from
+    dominating when history is fresh.
+    """
+    history = {}
+    if os.path.exists(QUOTE_HISTORY_FILE):
+        try:
+            with open(QUOTE_HISTORY_FILE) as f:
+                history = json.load(f)
+        except Exception:
+            history = {}
+
+    # Pre-seed: mark any fallback quote that is "overused" as shown 30 days ago
+    # This pushes them to the back without fully blocking them
+    preseed_date = (datetime.now() - timedelta(days=30)).isoformat()
+    changed = False
+    for theme, quotes in FALLBACK_QUOTES.items():
+        for i, (q, _) in enumerate(quotes):
+            key = f"{theme}:{i}"
+            if key not in history and _is_overused(q):
+                history[key] = preseed_date
+                changed = True
+    if changed:
+        _save_quote_history(history)
+
+    return history
+
+
 
 
 def _save_quote_history(history: dict):
@@ -290,6 +352,9 @@ def _save_quote_history(history: dict):
             json.dump(recent, f, indent=2)
     except Exception as e:
         print(f"  ⚠️  Could not save quote history: {e}")
+
+
+def _load_quote_history_raw_end(): pass  # marker
 
 
 
@@ -323,12 +388,38 @@ def _gemini_quote_seen_recently(theme: str, quote_text: str) -> bool:
 
 
 def _gemini_quote_matches_fallback(theme: str, quote_text: str):
-    """Check if Gemini generated a quote from our fallback library. Returns index or None."""
-    pool      = FALLBACK_QUOTES.get(theme, [])
-    quote_low = quote_text.strip().lower()
+    """
+    Check if Gemini generated a quote that exists in our fallback library.
+    Strips outer quotes, attribution, trailing punctuation before comparing.
+    Returns index or None.
+    """
+    pool = FALLBACK_QUOTES.get(theme, [])
+
+    def normalise(t):
+        t = t.strip()
+        # Strip outer curly and straight quote marks
+        t = t.strip('\u201c\u201d\u2018\u2019"\'')
+        t = t.lower()
+        # Remove attribution (everything after dash separators)
+        for sep in [' \u2014 ', ' - ', '\u2014', '\u2013']:
+            if sep in t:
+                t = t.split(sep)[0]
+        # Strip trailing quotes, periods, spaces
+        t = t.strip().strip('"\'.\u201d\u2019')
+        return t
+
+    q_norm = normalise(quote_text)
     for i, (fq, _) in enumerate(pool):
-        if fq.strip().lower()[:40] in quote_low or quote_low[:40] in fq.strip().lower():
-            return i
+        fq_norm = normalise(fq)
+        # Match: shorter text found inside longer (handles partial Gemini quotes)
+        if q_norm and fq_norm:
+            shorter = q_norm  if len(q_norm)  < len(fq_norm) else fq_norm
+            longer  = fq_norm if len(q_norm)  < len(fq_norm) else q_norm
+            if shorter and len(shorter) >= 15 and shorter in longer:
+                return i
+            # Also match on first 30 chars
+            if len(q_norm) >= 15 and q_norm[:30] == fq_norm[:30]:
+                return i
     return None
 
 
@@ -347,8 +438,13 @@ def _pick_quote_index(theme: str, pool_size: int) -> int:
     ]
 
     if not available:
-        print(f"  ⚠️  All {pool_size} quotes for '{theme}' shown recently — picking oldest.")
-        available = list(range(pool_size))
+        # All shown recently — prefer non-overused quotes
+        pool = FALLBACK_QUOTES.get(theme, [])
+        non_overused = [i for i in range(pool_size)
+                        if i < len(pool) and not _is_overused(pool[i][0])]
+        available = non_overused if non_overused else list(range(pool_size))
+        print(f"  ⚠️  All {pool_size} quotes for '{theme}' shown recently "
+              f"— cycling from {len(available)} non-overused.")
 
     def last_shown(i: int) -> str:
         return history.get(f"{theme}:{i}", "1970-01-01")
@@ -392,6 +488,11 @@ def _generate_via_gemini(theme: str):
         quote = quote.strip('"').strip("'")
 
         if not _is_quality_quote(quote):
+            return None
+
+        # Reject overused canonical quotes (Aristotle, Buffett, etc.)
+        if _is_overused(quote):
+            print(f"  ⚠️  Gemini returned an overused canonical quote — discarding.")
             return None
 
         # Reject if this exact quote was shown recently
